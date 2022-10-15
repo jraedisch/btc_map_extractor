@@ -40,7 +40,8 @@
     <table id="table">
       <thead>
         <tr id="headers">
-          <td>Edit</td>
+          <td>edit</td>
+          <td>report</td>
         </tr>
       </thead>
       <tbody id="elements"></tbody>
@@ -118,11 +119,19 @@
       }
       function buildRow(element) {
         var tr = document.createElement("tr");
+
         var td = document.createElement("td");
         var a = document.createElement("a");
         a.href =
           "https://www.openstreetmap.org/edit?node=" + element.osm_json.id;
         a.appendChild(document.createTextNode("edit"));
+        td.appendChild(a);
+        tr.appendChild(td);
+
+        var td = document.createElement("td");
+        var a = document.createElement("a");
+        a.href = `https://btcmap.org/report-outdated-info?&name=${element.osm_json.tags.name}&lat=${element.osm_json.lat}&long=${element.osm_json.lon}&node=${element.osm_json.id}`;
+        a.appendChild(document.createTextNode("report"));
         td.appendChild(a);
         tr.appendChild(td);
 
