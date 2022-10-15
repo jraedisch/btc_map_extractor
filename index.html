@@ -5,15 +5,35 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BTC Map Extractor</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        border: 1px solid black;
+      }
+      td {
+        border: 1px solid black;
+        padding: 8px;
+      }
+      thead td {
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
     <h1>Berlin entries on BTC Map</h1>
-    <table>
+    <p>Click on headers to sort.</p>
+    <table id="table">
       <thead>
         <tr id="headers"></tr>
       </thead>
       <tbody id="elements"></tbody>
     </table>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js"
+      integrity="sha512-F/gIMdDfda6OD2rnzt/Iyp2V9JLHlFQ+EUyixDg9+rkwjqgW1snpkpx7FD5FV1+gG2fmFj7I3r6ReQDUidHelA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script>
       var osm_tags = [
         "name",
@@ -52,6 +72,7 @@
         });
       }
       initTableHeaders(osm_tags);
+      new Tablesort(document.getElementById("table"));
       function extractElementsByCityTag(elements, city) {
         var filtered = [];
         elements.forEach((element) => {
@@ -68,7 +89,6 @@
         });
       }
       function buildRow(element) {
-        console.log(element.osm_json.tags);
         var tr = document.createElement("tr");
         osm_tags.forEach((tag) => {
           var td = document.createElement("td");
