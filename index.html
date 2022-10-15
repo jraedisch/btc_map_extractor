@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BTC Map Extractor</title>
+  </head>
+  <body>
+    <script>
+      function extractElementsByCityTag(elements, city) {
+        var filtered = [];
+        elements.forEach((element) => {
+          if (element.osm_json.tags["addr:city"] === city) {
+            filtered.push(element);
+          }
+        });
+        return filtered;
+      }
+      function appendElements(elements) {
+        var container = document.getElementById("elements");
+        elements.forEach((element) => {
+          container.appendChild(buildListItem(element));
+        });
+      }
+      function buildListItem(element) {
+        var li = document.createElement("li");
+        li.appendChild(
+          document.createTextNode(JSON.stringify(element.osm_json.tags))
+        );
+        return li;
+      }
+      fetch("https://api.btcmap.org/v2/elements")
+        .then((resp) => resp.json())
+        .then((elements) => {
+          var filtered = extractElementsByCityTag(elements, "Berlin");
+          appendElements(filtered);
+        });
+    </script>
+    <h1>Berlin entries on BTC Map</h1>
+    <ul id="elements"></ul>
+  </body>
+</html>
