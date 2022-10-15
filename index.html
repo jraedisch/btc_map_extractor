@@ -39,7 +39,9 @@
     </form>
     <table id="table">
       <thead>
-        <tr id="headers"></tr>
+        <tr id="headers">
+          <td>Edit</td>
+        </tr>
       </thead>
       <tbody id="elements"></tbody>
     </table>
@@ -116,6 +118,14 @@
       }
       function buildRow(element) {
         var tr = document.createElement("tr");
+        var td = document.createElement("td");
+        var a = document.createElement("a");
+        a.href =
+          "https://www.openstreetmap.org/edit?node=" + element.osm_json.id;
+        a.appendChild(document.createTextNode("edit"));
+        td.appendChild(a);
+        tr.appendChild(td);
+
         osm_tags.forEach((tag) => {
           var td = document.createElement("td");
           var content = element.osm_json.tags[tag];
