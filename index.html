@@ -96,7 +96,12 @@
       initTableHeaders(osm_tags);
       new Tablesort(document.getElementById("table"));
       function elementValid(element) {
-        return element && element.osm_json && element.osm_json.tags;
+        return (
+          element &&
+          !element.deleted_at &&
+          element.osm_json &&
+          element.osm_json.tags
+        );
       }
       function extractElementsByCityTag(elements, city) {
         var filtered = [];
@@ -143,7 +148,10 @@
         });
         return tr;
       }
-      fetch("https://api.btcmap.org/v2/elements", { cache: "reload" })
+      fetch(
+        "https://api.btcmap.org/v2/elements?updated_since=1970-01-01T00:00:01Z",
+        { cache: "reload" }
+      )
         .then((resp) => resp.json())
         .then((elements) => {
           var filtered = extractElementsByCityTag(elements, city);
