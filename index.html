@@ -92,11 +92,17 @@
       }
       initTableHeaders(osm_tags);
       new Tablesort(document.getElementById("table"));
+      function elementValid(element) {
+        return element && element.osm_json && element.osm_json.tags;
+      }
       function extractElementsByCityTag(elements, city) {
         var filtered = [];
         var all_cities = !city || city === "";
         elements.forEach((element) => {
-          if (all_cities || element.osm_json.tags["addr:city"] === city) {
+          if (
+            elementValid(element) &&
+            (all_cities || element.osm_json.tags["addr:city"] === city)
+          ) {
             filtered.push(element);
           }
         });
