@@ -7,7 +7,51 @@
     <title>BTC Map Extractor</title>
   </head>
   <body>
+    <h1>Berlin entries on BTC Map</h1>
+    <table>
+      <thead>
+        <tr id="headers"></tr>
+      </thead>
+      <tbody id="elements"></tbody>
+    </table>
     <script>
+      var osm_tags = [
+        "name",
+        "contact:website",
+        "website",
+        "contact:email",
+        "contact:phone",
+        "addr:country",
+        "addr:city",
+        "addr:postcode",
+        "addr:street",
+        "addr:housenumber",
+        "amenity",
+        "office",
+        "payment:lightning",
+        "payment:onchain",
+        "currency:XBT",
+        "opening_hours",
+        "diet:vegetarian",
+        "operator",
+        "tourism",
+        "wheelchair",
+        "capacity",
+        "cuisine",
+        "shop",
+        "takeaway",
+        "note",
+        "survey.date",
+      ];
+      function initTableHeaders(titles) {
+        var headers = document.getElementById("headers");
+        titles.forEach((title) => {
+          var header = document.createElement("td");
+          header.appendChild(document.createTextNode(title));
+          headers.appendChild(header);
+        });
+      }
+      initTableHeaders(osm_tags);
       function extractElementsByCityTag(elements, city) {
         var filtered = [];
         elements.forEach((element) => {
@@ -20,15 +64,19 @@
       function appendElements(elements) {
         var container = document.getElementById("elements");
         elements.forEach((element) => {
-          container.appendChild(buildListItem(element));
+          container.appendChild(buildRow(element));
         });
       }
-      function buildListItem(element) {
-        var li = document.createElement("li");
-        li.appendChild(
-          document.createTextNode(JSON.stringify(element.osm_json.tags))
-        );
-        return li;
+      function buildRow(element) {
+        console.log(element.osm_json.tags);
+        var tr = document.createElement("tr");
+        osm_tags.forEach((tag) => {
+          var td = document.createElement("td");
+          var content = element.osm_json.tags[tag];
+          td.appendChild(document.createTextNode(content ? content : ""));
+          tr.appendChild(td);
+        });
+        return tr;
       }
       fetch("https://api.btcmap.org/v2/elements")
         .then((resp) => resp.json())
@@ -37,7 +85,5 @@
           appendElements(filtered);
         });
     </script>
-    <h1>Berlin entries on BTC Map</h1>
-    <ul id="elements"></ul>
   </body>
 </html>
