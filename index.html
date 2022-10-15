@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BTC Map Extractor</title>
     <style>
+      form {
+        padding: 16px 0;
+      }
+      label {
+        display: block;
+      }
       table {
         border-collapse: collapse;
         border: 1px solid black;
@@ -20,8 +26,17 @@
     </style>
   </head>
   <body>
-    <h1>"Berlin" entries on <a href="https://btcmap.org/">BTC Map</a></h1>
+    <h1>
+      Entries on
+      <a href="https://btcmap.org/">BTC Map</a>
+      filterable by addr:city
+    </h1>
     <p>Click on headers to sort.</p>
+    <form method="GET">
+      <label for="city">City (case sensitive, leave empty for all):</label>
+      <input type="text" name="city" id="city" placeholder="E.g. Hamburg" />
+      <input type="submit" />
+    </form>
     <table id="table">
       <thead>
         <tr id="headers"></tr>
@@ -36,6 +51,9 @@
       referrerpolicy="no-referrer"
     ></script>
     <script>
+      var params = new URLSearchParams(window.location.search);
+      var city = params.get("city");
+      document.getElementById("city").value = city;
       var osm_tags = [
         "name",
         "contact:website",
@@ -76,8 +94,9 @@
       new Tablesort(document.getElementById("table"));
       function extractElementsByCityTag(elements, city) {
         var filtered = [];
+        var all_cities = !city || city === "";
         elements.forEach((element) => {
-          if (element.osm_json.tags["addr:city"] === city) {
+          if (all_cities || element.osm_json.tags["addr:city"] === city) {
             filtered.push(element);
           }
         });
@@ -102,7 +121,7 @@
       fetch("https://api.btcmap.org/v2/elements")
         .then((resp) => resp.json())
         .then((elements) => {
-          var filtered = extractElementsByCityTag(elements, "Berlin");
+          var filtered = extractElementsByCityTag(elements, city);
           appendElements(filtered);
         });
     </script>
