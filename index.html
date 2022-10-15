@@ -124,7 +124,7 @@
         });
         return tr;
       }
-      fetch("https://api.btcmap.org/v2/elements")
+      fetch("https://api.btcmap.org/v2/elements", { cache: "reload" })
         .then((resp) => resp.json())
         .then((elements) => {
           var filtered = extractElementsByCityTag(elements, city);
