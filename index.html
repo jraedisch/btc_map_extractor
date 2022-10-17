@@ -7,7 +7,8 @@
     <title>BTC Map Extractor</title>
     <style>
       form {
-        padding: 16px 0;
+        padding-top: 4px;
+        padding-bottom: 16px;
       }
       label {
         display: block;
@@ -28,13 +29,20 @@
   <body>
     <h1>
       Entries on
-      <a href="https://btcmap.org/">BTC Map</a>
-      filterable by addr:city
+      <a href="https://btcmap.org/">BTC Map</a> by City and Country Code
     </h1>
+    <p>
+      Providing city and country code leads to lat/lon search, providing one or
+      the other leads to search by tag. Leave both empty for all results.
+    </p>
     <p>Click on headers to sort.</p>
     <form method="GET">
-      <label for="city">City (case sensitive, leave empty for all):</label>
+      <label for="city">City:</label>
       <input type="text" name="city" id="city" placeholder="E.g. Hamburg" />
+      <br />
+      <label for="country">Country code:</label>
+      <input type="text" name="country" id="country" placeholder="E.g. DE" />
+      <br />
       <input type="submit" />
     </form>
     <table id="table">
@@ -55,8 +63,10 @@
     ></script>
     <script>
       var params = new URLSearchParams(window.location.search);
-      var city = params.get("city");
-      document.getElementById("city").value = city;
+      var city = (params.get("city") || "").toLowerCase();
+      var country = (params.get("country") || "").toLowerCase();
+      document.getElementById("city").value = params.get("city");
+      document.getElementById("country").value = params.get("country");
       var osm_tags = [
         "name",
         "contact:website",
@@ -85,6 +95,7 @@
         "note",
         "survey:date",
       ];
+
       function initTableHeaders(titles) {
         var headers = document.getElementById("headers");
         titles.forEach((title) => {
@@ -95,6 +106,17 @@
       }
       initTableHeaders(osm_tags);
       new Tablesort(document.getElementById("table"));
+
+      function resolveLocation(city, country, callback) {
+        fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&city=${city}&country=${country}`,
+          { cache: "force-cache" }
+        )
+          .then((resp) => resp.json())
+          .then((result) => {
+            callback(result[0].boundingbox);
+          });
+      }
       function elementValid(element) {
         return (
           element &&
@@ -103,13 +125,13 @@
           element.osm_json.tags
         );
       }
-      function extractElementsByCityTag(elements, city) {
+      function extractElementsByTag(elements, tag, value) {
         var filtered = [];
-        var all_cities = !city || city === "";
+        var all = !value || value === "";
         elements.forEach((element) => {
           if (
             elementValid(element) &&
-            (all_cities || element.osm_json.tags["addr:city"] === city)
+            (all || (element.osm_json.tags[tag] || "").toLowerCase() === value)
           ) {
             filtered.push(element);
           }
@@ -148,14 +170,54 @@
         });
         return tr;
       }
+      function inBoundingbox(element, box) {
+        var lat = element.osm_json.lat;
+        var lon = element.osm_json.lon;
+        var margin = 0.05; // percent
+        var latMargin = (90 * margin) / 100;
+        var lonMargin = (180 * margin) / 100;
+        var boxLatLow = Number(box[0]) - latMargin;
+        var boxLatUpp = Number(box[1]) + latMargin;
+        var boxLonLow = Number(box[2]) - lonMargin;
+        var boxLonUpp = Number(box[3]) + lonMargin;
+        return (
+          boxLatLow <= lat &&
+          lat <= boxLatUpp &&
+          boxLonLow <= lon &&
+          lon <= boxLonUpp
+        );
+      }
       fetch(
         "https://api.btcmap.org/v2/elements?updated_since=1970-01-01T00:00:01Z",
         { cache: "reload" }
       )
         .then((resp) => resp.json())
         .then((elements) => {
-          var filtered = extractElementsByCityTag(elements, city);
-          appendElements(filtered);
+          if (country === "") {
+            var filtered = extractElementsByTag(elements, "addr:city", city);
+            appendElements(filtered);
+          } else if (city === "") {
+            var filtered = extractElementsByTag(
+              elements,
+              "addr:country",
+              country
+            );
+            appendElements(filtered);
+          } else {
+            var filter = (boundingbox) => {
+              var filtered = [];
+              elements.forEach((element) => {
+                if (
+                  elementValid(element) &&
+                  inBoundingbox(element, boundingbox)
+                ) {
+                  filtered.push(element);
+                }
+              });
+              appendElements(filtered);
+            };
+            resolveLocation(city, country, filter);
+          }
         });
     </script>
   </body>
